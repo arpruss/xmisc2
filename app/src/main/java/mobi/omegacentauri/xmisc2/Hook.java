@@ -1,6 +1,8 @@
 package mobi.omegacentauri.xmisc2;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
+import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
 import android.os.SystemClock;
@@ -10,7 +12,14 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.ListAdapter;
 import android.widget.TextView;
+
+import org.w3c.dom.Text;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
@@ -24,6 +33,19 @@ import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 public class Hook implements IXposedHookLoadPackage {
     static InputMethodService ims = null;
     final Hook.Data persistentData = new Hook.Data();
+    static final Map<String,Object> noTabGroupOptions = new HashMap<String,Object>();
+    static {
+        noTabGroupOptions.put("tab_group_auto_creation", false);
+        noTabGroupOptions.put("start_surface_enabled", true);
+        noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.TabGridLayoutAndroid:enable_tab_group_auto_creation", false);
+        noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:omnibox_focused_on_new_tab", true);
+        noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:show_last_active_tab_only", true);
+        noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:home_button_on_grid_tab_switcher", true);
+        noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:new_home_surface_from_home_button", "hide_tab_switcher_only");
+        noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:hide_switch_when_no_incognito_tabs", true);
+        noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:start_surface_variation", "single");
+        noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:tab_count_button_on_start_surface", true);
+    }
 
     static public boolean isThisTheComposeButton(View v) {
         int id = v.getId();
@@ -46,19 +68,159 @@ public class Hook implements IXposedHookLoadPackage {
         //final boolean blackNavbar = prefs.getBoolean(Main.PREF_NAV_BAR, true);
         final boolean outlookEmailCompose = prefs.getBoolean(Main.PREF_OUTLOOK_COMPOSE, true);
         final boolean chromeMatchNavbar = prefs.getBoolean(Main.PREF_CHROME_MATCH_NAVBAR, true);
+        final boolean chromeNoTabGroup = prefs.getBoolean(Main.PREF_CHROME_KILL_TABGROUPS, false);
+
         final int opacity = 0xFF;
 
         if (outlookEmailCompose && lpparam.packageName.equals("com.microsoft.office.outlook")) {
             hookOutlookCompose(lpparam);
         }
 
-        if (chromeMatchNavbar && lpparam.packageName.equals("com.android.chrome")) {
-            hookChromeMatchNavbar(lpparam, true);
+        if (lpparam.packageName.equals("com.android.chrome")) {
+            if (chromeMatchNavbar)
+                hookChromeMatchNavbar(lpparam, true);
+            if (chromeNoTabGroup)
+                hookChromeNoTabGroup(lpparam);
         }
+    }
+
+    private void hookChromeNoTabGroup(LoadPackageParam lpparam) {
+        findAndHookMethod("android.app.SharedPreferencesImpl", lpparam.classLoader, "getBoolean",
+                String.class,
+                boolean.class,
+
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("req " + param.args[0]);
+                        if (noTabGroupOptions.containsKey(param.args[0])) {
+                            Object value = noTabGroupOptions.get(param.args[0]);
+                            if (value instanceof Boolean) {
+                                XposedBridge.log("override "+param.args[0]);
+                                param.setResult(value);
+                            }
+                        }
+                    }
+                });
+
+        findAndHookMethod("android.app.SharedPreferencesImpl", lpparam.classLoader, "getString",
+                String.class,
+                String.class,
+
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("req " + param.args[0]);
+                        if (noTabGroupOptions.containsKey(param.args[0])) {
+                            Object value = noTabGroupOptions.get(param.args[0]);
+                            if (value instanceof String) {
+                                param.setResult(value);
+                            }
+                        }
+                    }
+                });
+
+        findAndHookMethod("android.widget.ListView", lpparam.classLoader,
+                        "setAdapter",
+                        ListAdapter.class,
+
+                        new XC_MethodHook() {
+                            @SuppressLint("InlinedApi")
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                int id = ((View) param.thisObject).getId();
+                                if (id != View.NO_ID && ((View) param.thisObject).getResources().getResourceName(id).equals("com.android.chrome:id/context_menu_list_view")) {
+                                    final ListAdapter oldAdapter = (ListAdapter) param.args[0];
+                                    if (oldAdapter != null) {
+                                        param.args[0] = new ListAdapter() {
+
+                                            int disabledItem = -1;
+
+                                            @Override
+                                            public void registerDataSetObserver(DataSetObserver dataSetObserver) {
+                                                oldAdapter.registerDataSetObserver(dataSetObserver);
+                                            }
+
+                                            @Override
+                                            public void unregisterDataSetObserver(DataSetObserver dataSetObserver) {
+                                                oldAdapter.unregisterDataSetObserver(dataSetObserver);
+                                            }
+
+                                            @Override
+                                            public int getCount() {
+                                                return oldAdapter.getCount();
+                                            }
+
+                                            @Override
+                                            public Object getItem(int i) {
+                                                return oldAdapter.getItem(i);
+                                            }
+
+                                            @Override
+                                            public long getItemId(int i) {
+                                                return oldAdapter.getItemId(i);
+                                            }
+
+                                            @Override
+                                            public boolean hasStableIds() {
+                                                return oldAdapter.hasStableIds();
+                                            }
+
+                                            @Override
+                                            public View getView(int i, View view, ViewGroup viewGroup) {
+                                                View v = oldAdapter.getView(i, view, viewGroup);
+                                                try {
+                                                    if (v instanceof TextView) {
+                                                        if (((TextView) v).getText().equals("Open in new tab in group")) {
+                                                            disabledItem = i;
+                                                            ((TextView) v).setText("");
+                                                        }
+
+                                                    }
+                                                } catch (Exception e) {
+
+                                                }
+                                                return v;
+                                            }
+
+                                            @Override
+                                            public int getItemViewType(int i) {
+                                                return oldAdapter.getItemViewType(i);
+                                            }
+
+                                            @Override
+                                            public int getViewTypeCount() {
+                                                return oldAdapter.getViewTypeCount();
+                                            }
+
+                                            @Override
+                                            public boolean isEmpty() {
+                                                return oldAdapter.isEmpty();
+                                            }
+
+                                            @Override
+                                            public boolean areAllItemsEnabled() {
+                                                return oldAdapter.areAllItemsEnabled();
+                                            }
+
+                                            @Override
+                                            public boolean isEnabled(int i) {
+                                                if (i == disabledItem) {
+                                                    return false;
+                                                }
+                                                return oldAdapter.isEnabled(i);
+                                            }
+                                        };
+                                    }
+                                }
+                            }
+
+                        });
 
     }
 
     private void hookChromeMatchNavbar(LoadPackageParam lpparam, final boolean snapToBlackAndWhite) {
+
+
         findAndHookMethod("com.android.internal.policy.PhoneWindow", lpparam.classLoader,
                 "setStatusBarColor",
                 int.class,
@@ -107,21 +269,6 @@ public class Hook implements IXposedHookLoadPackage {
                 View.OnClickListener.class,
 
                 new XC_MethodHook() {
-/*                        @SuppressLint("InlinedApi")
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            if (isThisTheComposeButton((View)param.thisObject)) {
-                                final View.OnClickListener oldListener = (View.OnClickListener) param.args[0];
-                                param.args[0] = new View.OnClickListener(){
-                                    @Override
-                                    public void onClick(View view) {
-                                        XposedBridge.log("short click");
-                                        persistentData.lastComposeClickWasShort = true;
-                                        oldListener.onClick(view);
-                                    }
-                                };
-                            }
-                        } */
-
                     @SuppressLint("InlinedApi")
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         if (persistentData.lastLongClick + 500 < SystemClock.uptimeMillis() && param.thisObject.getClass().toString().equals("class androidx.constraintlayout.widget.ConstraintLayout")) {

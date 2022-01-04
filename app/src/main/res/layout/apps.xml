@@ -5,7 +5,7 @@
     android:layout_height="fill_parent"
     android:background="@android:color/black"
     android:orientation="vertical"
-    android:layout_gravity="center_vertical"
+    android:gravity="center_vertical"
     >
 
     <CheckBox
@@ -19,5 +19,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="In Chrome, nav bar matches stat bar better."
+        />
+    <CheckBox
+        android:id="@+id/chrome_kill_tabgroups"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="In Chrome, disable tab groups and use ordinary tabs. (English version only.)"
         />
 </LinearLayout>

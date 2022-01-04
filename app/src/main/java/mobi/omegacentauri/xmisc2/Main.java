@@ -37,7 +37,7 @@ public class Main extends Activity {
 	static final String PREFS = "preferences";
 	static final String PREF_OUTLOOK_COMPOSE = "outlook_compose";
 	static final String PREF_CHROME_MATCH_NAVBAR = "chrome_match_navbar";
-
+	static final String PREF_CHROME_KILL_TABGROUPS = "chrome_kill_tabgroups";
 
 	private void message(String title, String msg) {
 		AlertDialog alertDialog = new AlertDialog.Builder(this).create();
@@ -81,7 +81,17 @@ public class Main extends Activity {
             }
         });
 
-        Window w = getWindow();
+		cb = (CheckBox)findViewById(R.id.chrome_kill_tabgroups);
+		cb.setChecked(prefs.getBoolean(PREF_CHROME_KILL_TABGROUPS, false));
+
+		cb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				prefs.edit().putBoolean(PREF_CHROME_KILL_TABGROUPS, isChecked).apply();
+			}
+		});
+
+		Window w = getWindow();
         w.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
 		w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 		w.setNavigationBarColor(Color.BLACK);

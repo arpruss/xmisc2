@@ -14,7 +14,7 @@
 
         <activity android:name=".Main"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:label="xblacknav"
+            android:label="xmisc2"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

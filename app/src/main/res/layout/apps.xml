@@ -4,11 +4,20 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@android:color/black"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:layout_gravity="center_vertical"
+    >
 
-    <TextView
+    <CheckBox
+        android:id="@+id/outlook_compose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="- Compose in outlook composes an email unless you long-pressed (English version only)."/>
-
+        android:text="In Outlook, short click of plus button composes email and long click gives menu. (English version compatibility only.)"
+        />
+    <CheckBox
+        android:id="@+id/chrome_match_navbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="In Chrome, nav bar matches stat bar better."
+        />
 </LinearLayout>

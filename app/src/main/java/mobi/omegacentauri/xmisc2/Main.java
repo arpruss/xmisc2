@@ -35,6 +35,9 @@ public class Main extends Activity {
 	Resources res;
 	SharedPreferences prefs;
 	static final String PREFS = "preferences";
+	static final String PREF_OUTLOOK_COMPOSE = "outlook_compose";
+	static final String PREF_CHROME_MATCH_NAVBAR = "chrome_match_navbar";
+
 
 	private void message(String title, String msg) {
 		AlertDialog alertDialog = new AlertDialog.Builder(this).create();
@@ -58,27 +61,25 @@ public class Main extends Activity {
 
         setContentView(R.layout.apps);
         
-        res = getResources();
-/*
-        CheckBox statBarBlack = (CheckBox) findViewById(R.id.statbarblack);
-		statBarBlack.setChecked(prefs.getBoolean(PREF_STAT_BAR, false));
+        CheckBox cb = (CheckBox) findViewById(R.id.outlook_compose);
+		cb.setChecked(prefs.getBoolean(PREF_OUTLOOK_COMPOSE, true));
 
-		statBarBlack.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+		cb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				prefs.edit().putBoolean(PREF_STAT_BAR, isChecked).apply();
+				prefs.edit().putBoolean(PREF_OUTLOOK_COMPOSE, isChecked).apply();
 			}
 		});
 
-        CheckBox navBarBlack = (CheckBox)findViewById(R.id.navbarblack);
-        navBarBlack.setChecked(prefs.getBoolean(PREF_NAV_BAR, true));
+        cb = (CheckBox)findViewById(R.id.chrome_match_navbar);
+        cb.setChecked(prefs.getBoolean(PREF_CHROME_MATCH_NAVBAR, true));
 
-        navBarBlack.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+        cb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                prefs.edit().putBoolean(PREF_NAV_BAR, isChecked).apply();
+                prefs.edit().putBoolean(PREF_CHROME_MATCH_NAVBAR, isChecked).apply();
             }
-        }); */
+        });
 
         Window w = getWindow();
         w.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);

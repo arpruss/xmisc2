@@ -2,6 +2,7 @@ package mobi.omegacentauri.xmisc2;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 import org.w3c.dom.Text;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -62,13 +64,13 @@ public class Hook implements IXposedHookLoadPackage {
 
     @Override
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
-        XSharedPreferences prefs = new XSharedPreferences(Main.class.getPackage().getName(), Main.PREFS);
+        XSharedPreferences prefs = new XSharedPreferences(Options.class.getPackage().getName(), Options.PREFS);
 
         //final boolean blackStatusbar = prefs.getBoolean(Main.PREF_STAT_BAR, false);
         //final boolean blackNavbar = prefs.getBoolean(Main.PREF_NAV_BAR, true);
-        final boolean outlookEmailCompose = prefs.getBoolean(Main.PREF_OUTLOOK_COMPOSE, true);
-        final boolean chromeMatchNavbar = prefs.getBoolean(Main.PREF_CHROME_MATCH_NAVBAR, true);
-        final boolean chromeNoTabGroup = prefs.getBoolean(Main.PREF_CHROME_KILL_TABGROUPS, false);
+        final boolean outlookEmailCompose = prefs.getBoolean(Options.PREF_OUTLOOK_COMPOSE, true);
+        final boolean chromeMatchNavbar = prefs.getBoolean(Options.PREF_CHROME_MATCH_NAVBAR, true);
+        final boolean chromeNoTabGroup = prefs.getBoolean(Options.PREF_CHROME_KILL_TABGROUPS, false);
 
         final int opacity = 0xFF;
 
@@ -92,11 +94,9 @@ public class Hook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        XposedBridge.log("req " + param.args[0]);
                         if (noTabGroupOptions.containsKey(param.args[0])) {
                             Object value = noTabGroupOptions.get(param.args[0]);
                             if (value instanceof Boolean) {
-                                XposedBridge.log("override "+param.args[0]);
                                 param.setResult(value);
                             }
                         }
@@ -110,7 +110,6 @@ public class Hook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        XposedBridge.log("req " + param.args[0]);
                         if (noTabGroupOptions.containsKey(param.args[0])) {
                             Object value = noTabGroupOptions.get(param.args[0]);
                             if (value instanceof String) {
@@ -170,7 +169,8 @@ public class Hook implements IXposedHookLoadPackage {
                                                 View v = oldAdapter.getView(i, view, viewGroup);
                                                 try {
                                                     if (v instanceof TextView) {
-                                                        if (((TextView) v).getText().equals("Open in new tab in group")) {
+                                                        if (((TextView) v).getText().equals("Open in new tab in group")
+                                                                || (i==2 && ! Locale.getDefault().getLanguage().equals("en"))) {
                                                             disabledItem = i;
                                                             ((TextView) v).setText("");
                                                         }
@@ -270,6 +270,16 @@ public class Hook implements IXposedHookLoadPackage {
     }
 
     private void hookOutlookCompose(LoadPackageParam lpparam) {
+        findAndHookMethod("android.content.res.Resources", lpparam.classLoader, "getString", int.class,
+                new XC_MethodHook() {
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        String name = ((Resources)param.thisObject).getResourceName((int)param.args[0]);
+                        if (name.equals("com.microsoft.office.outlook:string/compose_title"))
+                            persistentData.composeTitle = (String) param.getResult();
+                    }
+
+                });
+
         findAndHookMethod("android.view.View", lpparam.classLoader,
                 "setOnClickListener",
                 View.OnClickListener.class,
@@ -277,13 +287,14 @@ public class Hook implements IXposedHookLoadPackage {
                 new XC_MethodHook() {
                     @SuppressLint("InlinedApi")
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        if (persistentData.lastLongClick + 500 < SystemClock.uptimeMillis() && param.thisObject.getClass().toString().equals("class androidx.constraintlayout.widget.ConstraintLayout")) {
+                        if (persistentData.composeTitle != null &&
+                                persistentData.lastLongClick + 500 < SystemClock.uptimeMillis() && param.thisObject.getClass().toString().equals("class androidx.constraintlayout.widget.ConstraintLayout")) {
                             ViewGroup v = (ViewGroup) param.thisObject;
                             if (v.getId() == View.NO_ID && v.getChildCount() == 2) {
                                 Object c0 = v.getChildAt(0);
                                 if (c0.getClass().toString().equals("class androidx.appcompat.widget.AppCompatTextView") &&
                                         v.getChildAt(1).getClass().toString().equals("class com.google.android.material.floatingactionbutton.FloatingActionButton")
-                                        && ((TextView) c0).getText().equals("New message")) {
+                                        && ((TextView) c0).getText().equals(persistentData.composeTitle)) {
                                     v.performClick();
                                 }
                             }
@@ -301,7 +312,6 @@ public class Hook implements IXposedHookLoadPackage {
                         if (isThisTheComposeButton((View) param.thisObject)) {
                             if (param.args[0] == null) {
                                 final View v = (View) param.thisObject;
-                                XposedBridge.log("null was requested");
                                 param.args[0] = new View.OnLongClickListener() {
                                     @Override
                                     public boolean onLongClick(View view) {
@@ -330,5 +340,6 @@ public class Hook implements IXposedHookLoadPackage {
 
     class Data {
         long lastLongClick = 0;
+        String composeTitle = null;
     }
 }

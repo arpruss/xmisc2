@@ -229,13 +229,19 @@ public class Hook implements IXposedHookLoadPackage {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         int color = (int)param.args[0];
                         if (snapToBlackAndWhite) {
+                            final int dividerColor;
+
                             if (Color.luminance(color) >= 0.5f) {
                                 color = 0xFFFFFFFF;
+                                dividerColor = 0xFFE1E3E1;
                             }
                             else {
                                 color = 0xFF000000;
+                                dividerColor = 0;
                             }
+                            ((Window) param.thisObject).setNavigationBarDividerColor(dividerColor);
                         }
+
                         ((Window) param.thisObject).setNavigationBarColor(color);
                     }
                 });

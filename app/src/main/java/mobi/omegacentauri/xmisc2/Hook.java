@@ -270,31 +270,47 @@ public class Hook implements IXposedHookLoadPackage {
     }
 
     private void hookOutlookCompose(LoadPackageParam lpparam) {
-        findAndHookMethod("android.content.res.Resources", lpparam.classLoader, "getString", int.class,
+/*        findAndHookMethod("android.content.res.Resources", lpparam.classLoader, "getText", int.class,
+                //CharSequence.class,
                 new XC_MethodHook() {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        String name = ((Resources)param.thisObject).getResourceName((int)param.args[0]);
-                        if (name.equals("com.microsoft.office.outlook:string/compose_title"))
-                            persistentData.composeTitle = (String) param.getResult();
+                        if (persistentData.composeTitle == null) {
+                            String name = ((Resources) param.thisObject).getResourceName((int) param.args[0]);
+                            XposedBridge.log("look up "+param.args[0]+" "+ name+ " "+param.getResult());
+                            if (name.equals("com.microsoft.office.outlook:string/compose_title")) {
+                                persistentData.composeTitle = (String) param.getResult();
+                            }
+                        }
                     }
 
-                });
+                }); */
 
         findAndHookMethod("android.view.View", lpparam.classLoader,
                 "setOnClickListener",
                 View.OnClickListener.class,
 
                 new XC_MethodHook() {
-                    @SuppressLint("InlinedApi")
+                    @SuppressLint({"InlinedApi", "ResourceType"})
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        if (persistentData.composeTitle != null &&
+                        if (//persistentData.composeTitle != null &&
                                 persistentData.lastLongClick + 500 < SystemClock.uptimeMillis() && param.thisObject.getClass().toString().equals("class androidx.constraintlayout.widget.ConstraintLayout")) {
                             ViewGroup v = (ViewGroup) param.thisObject;
                             if (v.getId() == View.NO_ID && v.getChildCount() == 2) {
                                 Object c0 = v.getChildAt(0);
+
                                 if (c0.getClass().toString().equals("class androidx.appcompat.widget.AppCompatTextView") &&
-                                        v.getChildAt(1).getClass().toString().equals("class com.google.android.material.floatingactionbutton.FloatingActionButton")
-                                        && ((TextView) c0).getText().equals(persistentData.composeTitle)) {
+                                        v.getChildAt(1).getClass().toString().equals("class com.google.android.material.floatingactionbutton.FloatingActionButton")) {
+
+                                    CharSequence text = ((TextView) c0).getText();
+
+                                    if (Locale.getDefault().getLanguage().equals("en")) {
+                                        if (! text.equals("New message"))
+                                            return;
+                                    }
+                                    else {
+                                        if (! v.getResources().getText(2131887358).equals(text))
+                                            return;
+                                    }
                                     v.performClick();
                                 }
                             }
@@ -340,6 +356,5 @@ public class Hook implements IXposedHookLoadPackage {
 
     class Data {
         long lastLongClick = 0;
-        String composeTitle = null;
     }
 }

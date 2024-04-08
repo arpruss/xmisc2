@@ -1,12 +1,18 @@
 package mobi.omegacentauri.xmisc2;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
+import android.media.AudioAttributes;
 import android.os.SystemClock;
+import android.os.VibrationAttributes;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,19 +55,7 @@ public class Hook implements IXposedHookLoadPackage {
         noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:tab_count_button_on_start_surface", true);
     }
 
-    static public boolean isThisTheComposeButton(View v) {
-        int id = v.getId();
-        if (id != View.NO_ID) {
-            try {
-                if (v.getResources().getResourceName(id).equals("com.microsoft.office.outlook:id/compose_fab")) {
-                    return true;
-                }
-            } catch (Exception e) {
-            }
-        }
-        return false;
-    }
-
+    @SuppressLint("NewApi")
     @Override
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
         XSharedPreferences prefs = new XSharedPreferences(Options.class.getPackage().getName(), Options.PREFS);
@@ -71,6 +65,7 @@ public class Hook implements IXposedHookLoadPackage {
         final boolean outlookEmailCompose = prefs.getBoolean(Options.PREF_OUTLOOK_COMPOSE, true);
         final boolean chromeMatchNavbar = prefs.getBoolean(Options.PREF_CHROME_MATCH_NAVBAR, true);
         final boolean chromeNoTabGroup = prefs.getBoolean(Options.PREF_CHROME_KILL_TABGROUPS, false);
+        final boolean longBackMenu = prefs.getBoolean(Options.PREF_LONG_BACK_MENU, false);
 
         final int opacity = 0xFF;
 
@@ -84,6 +79,33 @@ public class Hook implements IXposedHookLoadPackage {
             if (chromeNoTabGroup)
                 hookChromeNoTabGroup(lpparam);
         }
+
+        if (longBackMenu)
+            hookLongBack(lpparam);
+    }
+
+    private void hookLongBack(LoadPackageParam lpparam) {
+        findAndHookMethod("android.app.Activity", lpparam.classLoader,
+                "openOptionsMenu",
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        ((Activity)param.thisObject).closeOptionsMenu();
+                        ((Activity)param.thisObject).invalidateOptionsMenu();
+                    }
+                });
+        findAndHookMethod("android.app.Activity", lpparam.classLoader,
+                "onKeyLongPress",
+                int.class,
+                android.view.KeyEvent.class,
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        if ((Integer)param.args[0] == 4) {
+                            ((Activity)param.thisObject).openOptionsMenu();
+                        }
+                    }
+                });
     }
 
     private void hookChromeNoTabGroup(LoadPackageParam lpparam) {
@@ -119,7 +141,7 @@ public class Hook implements IXposedHookLoadPackage {
                     }
                 });
 
-        findAndHookMethod("android.widget.ListView", lpparam.classLoader,
+        findAndHookMethod("android.view.ListView", lpparam.classLoader,
                         "setAdapter",
                         ListAdapter.class,
 
@@ -268,6 +290,21 @@ public class Hook implements IXposedHookLoadPackage {
                     }
                 }); */
     }
+
+    static public boolean isThisTheComposeButton(View v) {
+        int id = v.getId();
+        if (id != View.NO_ID) {
+            try {
+                if (v.getResources().getResourceName(id).equals("com.microsoft.office.outlook:id/compose_fab")) {
+                    return true;
+                }
+            } catch (Exception e) {
+            }
+        }
+        return false;
+    }
+
+
 
     private void hookOutlookCompose(LoadPackageParam lpparam) {
 /*        findAndHookMethod("android.content.res.Resources", lpparam.classLoader, "getText", int.class,

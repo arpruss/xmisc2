@@ -3,5 +3,6 @@
     <string-array name="module_scope">
         <item>com.microsoft.office.outlook</item>
         <item>com.android.chrome</item>
+        <item>com.whatbird.pro</item>
     </string-array>
 </resources>

@@ -1,5 +1,42 @@
 apply plugin: 'com.android.application'
 
+apply plugin: 'com.android.application'
+
+android {
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
+}
+
+android {
+    compileSdkVersion 23
+    defaultConfig {
+        applicationId "mobi.omegacentauri.xupdown"
+        minSdkVersion 13
+        targetSdkVersion 23
+        versionCode 6
+        versionName "0.03"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    //    testImplementation 'junit:junit:4.12'
+    //    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    //    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    compileOnly 'de.robv.android.xposed:api:82'
+}
+
+
 android {
     compileSdkVersion 30
     defaultConfig {

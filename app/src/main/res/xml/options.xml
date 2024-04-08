@@ -14,5 +14,9 @@
         android:summary="Disable tab groups."
         android:defaultValue="false"
         android:key="chrome_kill_tabgroups" />
+    <CheckBoxPreference android:title="Long back-button menu"
+        android:summary="Long press back-button activates menu menu."
+        android:defaultValue="false"
+        android:key="long_back_menu" />
 
 </PreferenceScreen>

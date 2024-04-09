@@ -3,6 +3,8 @@ package mobi.omegacentauri.xmisc2;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.DataSetObserver;
@@ -24,6 +26,10 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -33,6 +39,7 @@ import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
@@ -58,19 +65,21 @@ public class Hook implements IXposedHookLoadPackage {
     @SuppressLint("NewApi")
     @Override
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
+        XposedBridge.log("handleLoadPackage "+lpparam.packageName);
         XSharedPreferences prefs = new XSharedPreferences(Options.class.getPackage().getName(), Options.PREFS);
 
         //final boolean blackStatusbar = prefs.getBoolean(Main.PREF_STAT_BAR, false);
         //final boolean blackNavbar = prefs.getBoolean(Main.PREF_NAV_BAR, true);
-        final boolean outlookEmailCompose = prefs.getBoolean(Options.PREF_OUTLOOK_COMPOSE, true);
+//        final boolean outlookEmailCompose = prefs.getBoolean(Options.PREF_OUTLOOK_COMPOSE, true);
+        final boolean outlookSilence = prefs.getBoolean(Options.PREF_OUTLOOK_SILENCE, true);
         final boolean chromeMatchNavbar = prefs.getBoolean(Options.PREF_CHROME_MATCH_NAVBAR, true);
         final boolean chromeNoTabGroup = prefs.getBoolean(Options.PREF_CHROME_KILL_TABGROUPS, false);
         final boolean longBackMenu = prefs.getBoolean(Options.PREF_LONG_BACK_MENU, false);
 
         final int opacity = 0xFF;
 
-        if (outlookEmailCompose && lpparam.packageName.equals("com.microsoft.office.outlook")) {
-            hookOutlookCompose(lpparam);
+        if (outlookSilence && lpparam.packageName.equals("com.microsoft.office.outlook")) {
+            hookSilence(lpparam);
         }
 
         if (lpparam.packageName.equals("com.android.chrome")) {
@@ -82,6 +91,127 @@ public class Hook implements IXposedHookLoadPackage {
 
         if (longBackMenu)
             hookLongBack(lpparam);
+
+//        if (lpparam.packageName.equals("com.fitness22.running"))
+//            hookSocket(lpparam);
+
+//        if (true && lpparam.packageName.equals("android")) hookPM(lpparam);
+    }
+
+    private void hookSilence(LoadPackageParam lpparam) {
+        XposedBridge.log("blocking playback");
+
+/*
+        findAndHookMethod("android.media.MediaPlayer", lpparam.classLoader,
+                "setDataSource",
+                AssetFileDescriptor.class,
+
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("sDS asset"+((AssetFileDescriptor)param.args[0]).getFileDescriptor());
+                    }
+                });
+        findAndHookMethod("android.media.MediaPlayer", lpparam.classLoader,
+                "setDataSource",
+                FileDescriptor.class,
+
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("sDS file"+(FileDescriptor)param.args[0]);
+                    }
+                });
+        findAndHookMethod("android.media.MediaPlayer", lpparam.classLoader,
+                "setDataSource",
+                String.class,
+
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("sDS string "+(String)param.args[0]);
+                    }
+                }); */
+        findAndHookMethod("android.media.MediaPlayer", lpparam.classLoader,
+                "start",
+
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("blocking play");
+                        param.setResult(null);
+                    }
+                });
+    }
+
+    private void hookSocket(LoadPackageParam lpparam) {
+        XposedBridge.log("blocking sockets");
+
+        findAndHookMethod("java.net.Socket", lpparam.classLoader,
+                "connect",
+                SocketAddress.class,
+                int.class,
+
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        param.setThrowable(new IOException());
+                    }
+                });
+        findAndHookMethod("java.net.Socket", lpparam.classLoader,
+                "connect",
+                SocketAddress.class,
+
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        param.setThrowable(new IOException());
+                    }
+                });
+/*        XposedHelpers.findAndHookConstructor("java.net.Socket",
+                lpparam.classLoader,
+                InetAddress.class,
+                Integer.class,
+                new XC_MethodHook() {
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("socket");
+                        //throw(new IOException());
+                    }
+
+                }); */
+    }
+
+    private void hookPM(LoadPackageParam lpparam) {
+        XposedBridge.log("hooking checkUidPermission");
+        findAndHookMethod("com.android.server.pm.permission.PermissionManagerService", lpparam.classLoader,
+                "checkUidPermission",
+                int.class,
+                String.class,
+                int.class,
+
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        int uid = (int) param.args[0];
+                        String perm = (String) param.args[1];
+                        if ((uid == 10275 || uid == 10316) && perm.endsWith("INTERNET")) {
+                            XposedBridge.log("check "+uid+" "+perm+" "+(uid == 10275 || uid == 10316)+" "+perm.endsWith("INTERNET"));
+                            XposedBridge.log("block");
+                            param.setResult(PackageManager.PERMISSION_DENIED);
+                        }
+                    }
+                });
+/*        findAndHookMethod("com.android.server.pm.PackageManagerService", lpparam.classLoader,
+                "checkPermission",
+                String.class,
+                String.class,
+                int.class,
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("check "+(String)param.args[0]+" "+(String)param.args[1]+" "+(Integer)param.args[2]);
+                    }
+                }); */
     }
 
     private void hookLongBack(LoadPackageParam lpparam) {

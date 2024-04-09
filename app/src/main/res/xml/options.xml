@@ -2,10 +2,10 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:summary="Activate for the apps you are tweaking in your xposed manager."
     >
-<CheckBoxPreference android:title="Outlook compose fix"
-    android:summary="Plus button directly composes email on short tap and gives menu on long tap."
+ <CheckBoxPreference android:title="Outlook silence"
+    android:summary="Silence Outlook."
     android:defaultValue="false"
-    android:key="outlook_compose" />
+    android:key="outlook_silence" />
     <CheckBoxPreference android:title="Chrome navigation bar match"
         android:summary="Black navigation bar in Chrome when status bar is darker."
         android:defaultValue="false"

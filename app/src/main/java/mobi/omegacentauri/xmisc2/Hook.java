@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.XResources;
 import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
@@ -36,6 +37,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
+import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
@@ -45,10 +47,10 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
-public class Hook implements IXposedHookLoadPackage {
+public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     static InputMethodService ims = null;
     final Hook.Data persistentData = new Hook.Data();
-    static final Map<String,Object> noTabGroupOptions = new HashMap<String,Object>();
+/*    static final Map<String,Object> noTabGroupOptions = new HashMap<String,Object>();
     static {
         noTabGroupOptions.put("tab_group_auto_creation", false);
         noTabGroupOptions.put("start_surface_enabled", true);
@@ -60,7 +62,7 @@ public class Hook implements IXposedHookLoadPackage {
         noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:hide_switch_when_no_incognito_tabs", true);
         noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:start_surface_variation", "single");
         noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:tab_count_button_on_start_surface", true);
-    }
+    } */
 
     @SuppressLint("NewApi")
     @Override
@@ -75,7 +77,7 @@ public class Hook implements IXposedHookLoadPackage {
         final boolean chromeMatchNavbar = prefs.getBoolean(Options.PREF_CHROME_MATCH_NAVBAR, true);
 //        final boolean chromeNoTabGroup = prefs.getBoolean(Options.PREF_CHROME_KILL_TABGROUPS, false);
         final boolean longBackMenu = prefs.getBoolean(Options.PREF_LONG_BACK_MENU, false);
-        final boolean noWakeOnPlug =prefs.getBoolean(Options.PREF_NO_WAKE_ON_PLUG, false);
+//        final boolean noWakeOnPlug =prefs.getBoolean(Options.PREF_NO_WAKE_ON_PLUG, false);
 
         final int opacity = 0xFF;
 
@@ -89,9 +91,9 @@ public class Hook implements IXposedHookLoadPackage {
             //if (chromeNoTabGroup) hookChromeNoTabGroup(lpparam);
         }
 
-        if (noWakeOnPlug && lpparam.packageName.equals("android")) {
-            hookNoPluggedPower(lpparam);
-        }
+//        if (noWakeOnPlug && lpparam.packageName.equals("android")) {
+//            hookNoPluggedPower(lpparam);
+//        }
 
         if (longBackMenu)
             hookLongBack(lpparam);
@@ -258,6 +260,7 @@ public class Hook implements IXposedHookLoadPackage {
                 });
     }
 
+    /*
     private void hookChromeNoTabGroup(LoadPackageParam lpparam) {
         findAndHookMethod("android.app.SharedPreferencesImpl", lpparam.classLoader, "getBoolean",
                 String.class,
@@ -389,6 +392,7 @@ public class Hook implements IXposedHookLoadPackage {
                         });
 
     }
+     */
 
     private void hookChromeMatchNavbar(LoadPackageParam lpparam, final boolean snapToBlackAndWhite) {
 
@@ -539,6 +543,15 @@ public class Hook implements IXposedHookLoadPackage {
                         }
                     }
                 });
+    }
+
+    @Override
+    public void initZygote(StartupParam startupParam) throws Throwable {
+        XposedBridge.log("init zygote");
+        XSharedPreferences prefs = new XSharedPreferences(Options.class.getPackage().getName(), Options.PREFS);
+        final boolean noWakeOnPlug =prefs.getBoolean(Options.PREF_NO_WAKE_ON_PLUG, false);
+        if (noWakeOnPlug)
+            XResources.setSystemWideReplacement("android", "bool", "config_unplugTurnsOnScreen", false);
     }
 
     class Data {

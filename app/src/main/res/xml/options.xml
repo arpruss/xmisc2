@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:summary="Activate for the apps you are tweaking in your xposed manager."
     >
- <CheckBoxPreference android:title="Silence outlook"
+ <CheckBoxPreference android:title="Silence Outlook"
     android:summary="Disable sounds (e.g., message sent) in Outlook."
     android:defaultValue="false"
     android:key="outlook_silence" />

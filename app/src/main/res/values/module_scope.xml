@@ -4,7 +4,7 @@
         <item>com.microsoft.office.outlook</item>
         <item>com.android.chrome</item>
         <item>com.whatbird.pro</item>
-        <item>android</item>
+        <item>system</item>
 <!--        <item>system</item> -->
     </string-array>
 </resources>

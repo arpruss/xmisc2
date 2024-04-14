@@ -9,10 +9,11 @@ import android.view.WindowManager;
 
 public class Options extends PreferenceActivity {
     public static final String PREF_OUTLOOK_SILENCE = "outlook_silence";
+    public static final String PREF_NO_WAKE_ON_PLUG = "no_wake_on_plug";
     static final String PREFS = "preferences";
 //    static final String PREF_OUTLOOK_COMPOSE = "outlook_compose";
     static final String PREF_CHROME_MATCH_NAVBAR = "chrome_match_navbar";
-    static final String PREF_CHROME_KILL_TABGROUPS = "chrome_kill_tabgroups";
+    //static final String PREF_CHROME_KILL_TABGROUPS = "chrome_kill_tabgroups";
 
     static final String PREF_LONG_BACK_MENU = "long_back_menu";
 

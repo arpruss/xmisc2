@@ -73,8 +73,9 @@ public class Hook implements IXposedHookLoadPackage {
 //        final boolean outlookEmailCompose = prefs.getBoolean(Options.PREF_OUTLOOK_COMPOSE, true);
         final boolean outlookSilence = prefs.getBoolean(Options.PREF_OUTLOOK_SILENCE, true);
         final boolean chromeMatchNavbar = prefs.getBoolean(Options.PREF_CHROME_MATCH_NAVBAR, true);
-        final boolean chromeNoTabGroup = prefs.getBoolean(Options.PREF_CHROME_KILL_TABGROUPS, false);
+//        final boolean chromeNoTabGroup = prefs.getBoolean(Options.PREF_CHROME_KILL_TABGROUPS, false);
         final boolean longBackMenu = prefs.getBoolean(Options.PREF_LONG_BACK_MENU, false);
+        final boolean noWakeOnPlug =prefs.getBoolean(Options.PREF_NO_WAKE_ON_PLUG, false);
 
         final int opacity = 0xFF;
 
@@ -85,8 +86,11 @@ public class Hook implements IXposedHookLoadPackage {
         if (lpparam.packageName.equals("com.android.chrome")) {
             if (chromeMatchNavbar)
                 hookChromeMatchNavbar(lpparam, true);
-            if (chromeNoTabGroup)
-                hookChromeNoTabGroup(lpparam);
+            //if (chromeNoTabGroup) hookChromeNoTabGroup(lpparam);
+        }
+
+        if (noWakeOnPlug && lpparam.packageName.equals("android")) {
+            hookNoPluggedPower(lpparam);
         }
 
         if (longBackMenu)
@@ -96,6 +100,22 @@ public class Hook implements IXposedHookLoadPackage {
 //            hookSocket(lpparam);
 
 //        if (true && lpparam.packageName.equals("android")) hookPM(lpparam);
+    }
+
+    private void hookNoPluggedPower(LoadPackageParam lpparam) {
+        final String packageName = lpparam.packageName;
+        findAndHookMethod("android.content.res.Resources", lpparam.classLoader,
+                "getBoolean",
+                int.class,
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        if ((int)param.args[0]==17891917 || ((int)param.args[0] == 17891369)) {
+                            XposedBridge.log("intercepted to false");
+                            param.setResult(false);
+                        }
+                    }
+                });
     }
 
     private void hookSilence(LoadPackageParam lpparam) {

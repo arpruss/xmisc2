@@ -12,13 +12,15 @@ android {
 }
 
 android {
+    //noinspection GradleCompatible
     compileSdkVersion 23
     defaultConfig {
-        applicationId "mobi.omegacentauri.xupdown"
+        applicationId "mobi.omegacentauri.xmisc2"
         minSdkVersion 13
-        targetSdkVersion 23
+        //noinspection EditedTargetSdkVersion
+        targetSdkVersion 34
         versionCode 6
-        versionName "0.03"
+        versionName "0.05"
     }
     buildTypes {
         release {

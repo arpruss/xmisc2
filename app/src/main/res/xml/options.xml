@@ -2,20 +2,24 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:summary="Activate for the apps you are tweaking in your xposed manager."
     >
- <CheckBoxPreference android:title="Outlook silence"
-    android:summary="Silence Outlook."
+ <CheckBoxPreference android:title="Silence outlook"
+    android:summary="Disable sounds (e.g., message sent) in Outlook."
     android:defaultValue="false"
     android:key="outlook_silence" />
-    <CheckBoxPreference android:title="Chrome navigation bar match"
+-    <CheckBoxPreference android:title="Chrome navigation bar match"
         android:summary="Black navigation bar in Chrome when status bar is darker."
         android:defaultValue="false"
         android:key="chrome_match_navbar" />
-    <CheckBoxPreference android:title="Chrome disable tab groups"
+    <!--    <CheckBoxPreference android:title="Chrome disable tab groups"
         android:summary="Disable tab groups."
         android:defaultValue="false"
-        android:key="chrome_kill_tabgroups" />
+        android:key="chrome_kill_tabgroups" /> -->
+    <CheckBoxPreference android:title="No wake on plug/unplug"
+        android:summary="Disable wake on plug/unplug (reboot if changed)."
+        android:defaultValue="false"
+        android:key="no_wake_on_plug" />
     <CheckBoxPreference android:title="Long back-button menu"
-        android:summary="Long press back-button activates menu menu."
+        android:summary="Long press back-button activates options menu for legacy apps."
         android:defaultValue="false"
         android:key="long_back_menu" />
 

@@ -15,11 +15,11 @@
         android:defaultValue="false"
         android:key="chrome_kill_tabgroups" /> -->
     <CheckBoxPreference android:title="No wake on plug/unplug"
-        android:summary="Disable wake on plug/unplug (reboot if changed)."
+        android:summary="Disable wake on plug/unplug (reboot if changed). Activate module for System Framework to use."
         android:defaultValue="false"
         android:key="no_wake_on_plug" />
     <CheckBoxPreference android:title="Long back-button menu"
-        android:summary="Long press back-button activates options menu for legacy apps."
+        android:summary="Long press back-button activates options menu for legacy apps. Activate module for these apps to use."
         android:defaultValue="false"
         android:key="long_back_menu" />
 

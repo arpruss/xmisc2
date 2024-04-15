@@ -1,51 +1,31 @@
 package mobi.omegacentauri.xmisc2;
 
+import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetFileDescriptor;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.XResources;
-import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
-import android.media.AudioAttributes;
 import android.os.SystemClock;
-import android.os.VibrationAttributes;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
-import android.widget.ImageButton;
-import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.io.FileDescriptor;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.SocketAddress;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Stream;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
-
-import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
 public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     static InputMethodService ims = null;
@@ -79,6 +59,8 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
         final boolean longBackMenu = prefs.getBoolean(Options.PREF_LONG_BACK_MENU, false);
 //        final boolean noWakeOnPlug =prefs.getBoolean(Options.PREF_NO_WAKE_ON_PLUG, false);
 
+        XposedBridge.log("option longBackMenu "+longBackMenu);
+
         final int opacity = 0xFF;
 
         if (outlookSilence && lpparam.packageName.equals("com.microsoft.office.outlook")) {
@@ -93,6 +75,10 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
 //        if (noWakeOnPlug && lpparam.packageName.equals("android")) {
 //            hookNoPluggedPower(lpparam);
+//        }
+
+//        if (lpparam.packageName.equals("android")) {
+//            hookTilt(lpparam);
 //        }
 
         if (longBackMenu)
@@ -115,6 +101,25 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         if ((int)param.args[0]==17891917 || ((int)param.args[0] == 17891369)) {
                             XposedBridge.log("intercepted to false");
                             param.setResult(false);
+                        }
+                    }
+                });
+    }
+
+    private void hookTilt(LoadPackageParam lpparam) {
+        XposedBridge.log("hooking tilt");
+        final String packageName = lpparam.packageName;
+        findAndHookMethod("android.content.res.Resources", lpparam.classLoader,
+                "getIntArray",
+                int.class,
+                new XC_MethodHook() {
+                    @SuppressLint("InlinedApi")
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        Resources r = (Resources) param.thisObject;
+                        int id = r.getIdentifier("android:array/config_autoRotationTiltTolerance",null,null);
+                        int[] out = (int[]) param.getResult();
+                        if (out != null) {
+                            XposedBridge.log("getIntArray "+id+" "+(int)param.args[0]+" "+(int)out.length);
                         }
                     }
                 });
@@ -237,6 +242,7 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     }
 
     private void hookLongBack(LoadPackageParam lpparam) {
+        XposedBridge.log("hooking for long back menu");
         findAndHookMethod("android.app.Activity", lpparam.classLoader,
                 "openOptionsMenu",
                 new XC_MethodHook() {
@@ -547,11 +553,21 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     @Override
     public void initZygote(StartupParam startupParam) throws Throwable {
-        XposedBridge.log("init zygote");
+        XposedBridge.log("init zygote3");
         XSharedPreferences prefs = new XSharedPreferences(Options.class.getPackage().getName(), Options.PREFS);
         final boolean noWakeOnPlug =prefs.getBoolean(Options.PREF_NO_WAKE_ON_PLUG, false);
+//        final boolean strictRotation = true;
         if (noWakeOnPlug)
             XResources.setSystemWideReplacement("android", "bool", "config_unplugTurnsOnScreen", false);
+//        final int[] rotationTilt = { -10, 10,   -10,10,  -10,10,  -10,10 };
+//        XposedBridge.log("init ");
+//        if (strictRotation) {
+//            XposedBridge.log("replacing rot");
+//            XResources.setSystemWideReplacement("android", "array", "config_autoRotationTiltTolerance",
+//                    rotationTilt); // TODO! Does not work.
+//            XposedBridge.log("replaced rot");
+//        }
+
     }
 
     class Data {

@@ -18,8 +18,8 @@
         android:summary="Disable wake on plug/unplug (reboot if changed). Activate module for System Framework to use."
         android:defaultValue="false"
         android:key="no_wake_on_plug" />
-    <CheckBoxPreference android:title="Long back-button menu"
-        android:summary="Long press back-button activates options menu for legacy apps. Activate module for these apps to use."
+    <CheckBoxPreference android:title="Long press back button menu"
+        android:summary="Long press back button activates options menu for legacy apps. Activate module for these apps to use."
         android:defaultValue="false"
         android:key="long_back_menu" />
 

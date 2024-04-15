@@ -14,12 +14,15 @@
         <meta-data
             android:name="xposedsharedprefs"
             android:value="true"/>
+
         <meta-data android:name="xposedscope" android:resource="@array/module_scope" />
 
         <activity android:name=".Options"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:label="xmisc2"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:exported="true"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

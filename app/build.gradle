@@ -13,12 +13,12 @@ android {
 
 android {
     //noinspection GradleCompatible
-    compileSdkVersion 23
+    compileSdkVersion 30
     defaultConfig {
         applicationId "mobi.omegacentauri.xmisc2"
         minSdkVersion 13
-        //noinspection EditedTargetSdkVersion
-        targetSdkVersion 34
+        //noinspection ExpiredTargetSdkVersion,EditedTargetSdkVersion
+        targetSdkVersion 23
         versionCode 6
         versionName "0.05"
     }
@@ -40,20 +40,20 @@ dependencies {
 
 
 android {
-    compileSdkVersion 30
-    defaultConfig {
-        applicationId "mobi.omegacentauri.xmisc2"
-        minSdkVersion 21
-        targetSdkVersion 23
-        versionCode 3
-        versionName "0.03"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
+//    compileSdkVersion 30
+//    defaultConfig {
+//        applicationId "mobi.omegacentauri.xmisc2"
+//        minSdkVersion 21
+//        targetSdkVersion 23
+//        versionCode 3
+//        versionName "0.03"
+//    }
+//    buildTypes {
+//        release {
+//            minifyEnabled false
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//        }
+//    }
     compileOptions {
         targetCompatibility 1.8
         sourceCompatibility 1.8

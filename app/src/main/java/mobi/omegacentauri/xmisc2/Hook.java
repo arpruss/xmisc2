@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.XResources;
+import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
 import android.os.SystemClock;
@@ -14,11 +15,14 @@ import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
@@ -30,7 +34,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     static InputMethodService ims = null;
     final Hook.Data persistentData = new Hook.Data();
-/*    static final Map<String,Object> noTabGroupOptions = new HashMap<String,Object>();
+    static final Map<String,Object> noTabGroupOptions = new HashMap<String,Object>();
     static {
         noTabGroupOptions.put("tab_group_auto_creation", false);
         noTabGroupOptions.put("start_surface_enabled", true);
@@ -42,7 +46,7 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
         noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:hide_switch_when_no_incognito_tabs", true);
         noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:start_surface_variation", "single");
         noTabGroupOptions.put("Chrome.Flags.FieldTrialParamCached.StartSurfaceAndroid:tab_count_button_on_start_surface", true);
-    } */
+    }
 
     @SuppressLint("NewApi")
     @Override
@@ -55,7 +59,7 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 //        final boolean outlookEmailCompose = prefs.getBoolean(Options.PREF_OUTLOOK_COMPOSE, true);
         final boolean outlookSilence = prefs.getBoolean(Options.PREF_OUTLOOK_SILENCE, true);
         final boolean chromeMatchNavbar = prefs.getBoolean(Options.PREF_CHROME_MATCH_NAVBAR, true);
-//        final boolean chromeNoTabGroup = prefs.getBoolean(Options.PREF_CHROME_KILL_TABGROUPS, false);
+        final boolean chromeNoTabGroup = prefs.getBoolean(Options.PREF_CHROME_KILL_TABGROUPS, false);
         final boolean longBackMenu = prefs.getBoolean(Options.PREF_LONG_BACK_MENU, false);
 //        final boolean noWakeOnPlug =prefs.getBoolean(Options.PREF_NO_WAKE_ON_PLUG, false);
 
@@ -70,7 +74,7 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
         if (lpparam.packageName.equals("com.android.chrome")) {
             if (chromeMatchNavbar)
                 hookChromeMatchNavbar(lpparam, true);
-            //if (chromeNoTabGroup) hookChromeNoTabGroup(lpparam);
+            if (chromeNoTabGroup) hookChromeNoTabGroup(lpparam);
         }
 
 //        if (noWakeOnPlug && lpparam.packageName.equals("android")) {
@@ -266,7 +270,6 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                 });
     }
 
-    /*
     private void hookChromeNoTabGroup(LoadPackageParam lpparam) {
         findAndHookMethod("android.app.SharedPreferencesImpl", lpparam.classLoader, "getBoolean",
                 String.class,
@@ -300,7 +303,7 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                     }
                 });
 
-        findAndHookMethod("android.view.ListView", lpparam.classLoader,
+        findAndHookMethod("android.widget.ListView", lpparam.classLoader,
                         "setAdapter",
                         ListAdapter.class,
 
@@ -398,7 +401,6 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         });
 
     }
-     */
 
     private void hookChromeMatchNavbar(LoadPackageParam lpparam, final boolean snapToBlackAndWhite) {
 

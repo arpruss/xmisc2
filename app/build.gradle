@@ -1,7 +1,5 @@
 apply plugin: 'com.android.application'
 
-apply plugin: 'com.android.application'
-
 android {
     lintOptions {
         checkReleaseBuilds false
@@ -18,9 +16,9 @@ android {
         applicationId "mobi.omegacentauri.xmisc2"
         minSdkVersion 13
         //noinspection ExpiredTargetSdkVersion,EditedTargetSdkVersion
-        targetSdkVersion 23
-        versionCode 6
-        versionName "0.05"
+        targetSdkVersion 30
+        versionCode 7
+        versionName "0.07"
     }
     buildTypes {
         release {

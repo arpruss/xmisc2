@@ -13,7 +13,7 @@ android {
     //noinspection GradleCompatible
     compileSdkVersion 30
     defaultConfig {
-        applicationId "mobi.omegacentauri.ximage"
+        applicationId "mobi.omegacentauri.xmisc2"
         minSdkVersion 13
         //noinspection ExpiredTargetSdkVersion,EditedTargetSdkVersion
         targetSdkVersion 30
@@ -40,7 +40,7 @@ dependencies {
 android {
 //    compileSdkVersion 30
 //    defaultConfig {
-//        applicationId "mobi.omegacentauri.ximage"
+//        applicationId "mobi.omegacentauri.xmisc2"
 //        minSdkVersion 21
 //        targetSdkVersion 23
 //        versionCode 3

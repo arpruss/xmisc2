@@ -2,6 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:summary="Activate for the apps you are tweaking in your xposed manager."
     >
+<!--
  <CheckBoxPreference android:title="Silence Outlook"
     android:summary="Disable sounds (e.g., message sent) in Outlook."
     android:defaultValue="false"
@@ -22,5 +23,5 @@
         android:summary="Long press back button activates options menu for legacy apps. Activate module for these apps to use."
         android:defaultValue="false"
         android:key="long_back_menu" />
-
+-->
 </PreferenceScreen>

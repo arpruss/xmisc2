@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="module_scope">
-        <item>com.microsoft.office.outlook</item>
-        <item>com.android.chrome</item>
-        <item>com.whatbird.pro</item>
-        <item>android</item>
-<!--        <item>system</item> -->
+<!--        <item>android</item> -->
     </string-array>
 </resources>

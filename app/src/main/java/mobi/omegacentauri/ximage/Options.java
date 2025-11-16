@@ -1,7 +1,9 @@
-package mobi.omegacentauri.xmisc2;
+package mobi.omegacentauri.ximage;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,6 +12,8 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
+
+import de.robv.android.xposed.XposedBridge;
 
 public class Options extends PreferenceActivity {
     public static final String PREF_OUTLOOK_SILENCE = "outlook_silence";
@@ -40,7 +44,7 @@ public class Options extends PreferenceActivity {
 
     public void onDestroy() {
         super.onDestroy();
-        Log.v("xmisc2", "killing");
+        Log.v("ximage", "killing");
         android.os.Process.killProcess(android.os.Process.myPid());
     }
 
@@ -58,12 +62,12 @@ public class Options extends PreferenceActivity {
              */
             PreferenceManager prefMgr = getPreferenceManager();
             prefMgr.setSharedPreferencesName(PREFS);
-            prefMgr.setSharedPreferencesMode(MODE_WORLD_READABLE);
+//            prefMgr.setSharedPreferencesMode(MODE_WORLD_READABLE);
             addPreferencesFromResource(R.xml.options);
             killProcess = false;
         }
         catch(SecurityException e) {
-            Log.e("xaccelcal", "cannot make prefs world readable");
+            Log.e("ximage", "cannot make prefs world readable");
             killProcess = true;
             mustExit();
         }

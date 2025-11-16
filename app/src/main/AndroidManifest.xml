@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="mobi.omegacentauri.xmisc2">
+    package="mobi.omegacentauri.ximage">
 
-    <application android:label="xmisc2" android:theme="@android:style/Theme.Black">
+    <application android:label="xnowebkit" android:theme="@android:style/Theme.Black">
         <meta-data
             android:name="xposedmodule"
             android:value="true" />
@@ -19,7 +19,7 @@
 
         <activity android:name=".Options"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:label="xmisc2"
+            android:label="xnowebkit"
             android:launchMode="singleTask"
             android:exported="true"
             >
